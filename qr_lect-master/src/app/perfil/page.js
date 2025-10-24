@@ -36,6 +36,8 @@ export default function PerfilPage() {
     }
   };
 
+  const isAdmin = userData?.usuario?.role === 'ADMIN';
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
@@ -49,7 +51,7 @@ export default function PerfilPage() {
   }
 
   return (
-    <ProtectedRoute requiredRole="USER">
+    <ProtectedRoute requiredRole={['ADMIN', 'USER']}>
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -64,15 +66,28 @@ export default function PerfilPage() {
                   Semillero Devurity - USCO
                 </p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-all text-sm"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Cerrar sesión
-              </button>
+              <div className="flex gap-2">
+                {isAdmin && (
+                  <button
+                    onClick={() => window.location.href = '/asistencias'}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-all text-sm"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Asistencia
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-md transition-all text-sm"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -238,6 +253,34 @@ export default function PerfilPage() {
             Semillero Devurity - Universidad Surcolombiana © {new Date().getFullYear()}
           </p>
         </div>
+
+
+        {/* Botón flotante - solo para ADMIN */}
+        {isAdmin && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <a
+              href="/admin"
+              className="relative flex items-center justify-center bg-gradient-to-r from-slate-700 to-slate-900 text-white p-3 sm:p-4 rounded-full shadow-lg hover:from-slate-800 hover:to-slate-950 focus:outline-none focus:ring-4 focus:ring-slate-500 focus:ring-offset-2 transition-all transform hover:scale-110 group"
+            >
+              <svg 
+                className="w-5 h-5 sm:w-6 sm:h-6" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" 
+                />
+              </svg>
+              <span className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-slate-900 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Escanear QR
+              </span>
+            </a>
+          </div>
+        )}
       </div>
     </div>
     </ProtectedRoute>

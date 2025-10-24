@@ -6,6 +6,7 @@ export default function AdminPage() {
   const [scanning, setScanning] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [lastScanned, setLastScanned] = useState(null);
   const [cameraError, setCameraError] = useState("");
   const scannerRef = useRef(null);
@@ -36,7 +37,6 @@ export default function AdminPage() {
       fps: 10,
       qrbox: { width: 250, height: 250 },
       aspectRatio: 1.0,
-      // Preferir cámara trasera en móviles
       facingMode: { exact: "environment" }
     };
 
@@ -66,6 +66,7 @@ export default function AdminPage() {
     setScanning(false);
     setError("");
     setSuccess("");
+    setDuplicateInfo(null);
 
     // Pausar el escáner
     if (scannerRef.current) {
@@ -100,6 +101,22 @@ export default function AdminPage() {
         timeoutRef.current = setTimeout(() => {
           resumeScanner();
         }, 3000);
+      } else if (res.status === 409) {
+        // Caso de duplicado
+        setDuplicateInfo({
+          usuario: data.usuario?.nombre || "Usuario",
+          correo: data.usuario?.correo || "",
+          mensaje: data.mensaje || "Ya registró asistencia hoy",
+          horaPrevia: data.asistencia?.fecha ? new Date(data.asistencia.fecha).toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : null
+        });
+        
+        // Reanudar después de 4 segundos (más tiempo para leer el mensaje)
+        timeoutRef.current = setTimeout(() => {
+          resumeScanner();
+        }, 4000);
       } else {
         setError(data.error || "Error al registrar asistencia");
         
@@ -122,6 +139,7 @@ export default function AdminPage() {
   const resumeScanner = () => {
     setSuccess("");
     setError("");
+    setDuplicateInfo(null);
     setLastScanned(null);
     
     if (scannerRef.current) {
@@ -172,7 +190,7 @@ export default function AdminPage() {
                   Escanear QR
                 </h1>
                 <p className="text-slate-300 text-xs sm:text-sm mt-1">
-                  Valida la asistencia
+                  Valida la asistencia (1 registro por día)
                 </p>
               </div>
             </div>
@@ -199,6 +217,59 @@ export default function AdminPage() {
                     >
                       Reintentar
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Alerta de duplicado */}
+            {duplicateInfo && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <h3 className="text-sm font-semibold text-amber-800 mb-2">
+                      Asistencia ya registrada
+                    </h3>
+                    <div className="bg-white rounded-md p-3 sm:p-4 border border-amber-100">
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <svg className="w-4 h-4 text-slate-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="text-xs sm:text-sm text-slate-600">Usuario:</span>
+                          <span className="text-xs sm:text-sm font-semibold text-slate-900 ml-2 truncate">{duplicateInfo.usuario}</span>
+                        </div>
+                        {duplicateInfo.correo && (
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 text-slate-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-xs sm:text-sm text-slate-600">Correo:</span>
+                            <span className="text-xs sm:text-sm text-slate-700 ml-2 truncate">{duplicateInfo.correo}</span>
+                          </div>
+                        )}
+                        {duplicateInfo.horaPrevia && (
+                          <div className="flex items-center">
+                            <svg className="w-4 h-4 text-slate-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-xs sm:text-sm text-slate-600">Registrado a las:</span>
+                            <span className="text-xs sm:text-sm font-semibold text-amber-700 ml-2">{duplicateInfo.horaPrevia}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-xs text-amber-700 mt-3 flex items-center">
+                      <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Solo se permite 1 registro por día
+                    </p>
                   </div>
                 </div>
               </div>
@@ -273,7 +344,7 @@ export default function AdminPage() {
             )}
 
             {/* Instrucciones */}
-            {scanning && !success && !error && !cameraError && (
+            {scanning && !success && !error && !cameraError && !duplicateInfo && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 sm:mb-6">
                 <div className="flex">
                   <svg className="h-5 w-5 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -304,7 +375,7 @@ export default function AdminPage() {
             {/* Estado del escáner */}
             {!cameraError && (
               <div className="mt-4 sm:mt-6 text-center">
-                {scanning && !success && !error ? (
+                {scanning && !success && !error && !duplicateInfo ? (
                   <div className="flex items-center justify-center text-slate-600">
                     <div className="animate-pulse flex items-center">
                       <div className="h-2 w-2 bg-green-500 rounded-full mr-2 animate-ping"></div>
@@ -312,7 +383,7 @@ export default function AdminPage() {
                       <span className="text-xs sm:text-sm font-medium ml-3">Escáner activo</span>
                     </div>
                   </div>
-                ) : success || error ? (
+                ) : success || error || duplicateInfo ? (
                   <div className="flex items-center justify-center text-slate-600">
                     <div className="animate-spin h-4 w-4 border-2 border-slate-300 border-t-slate-700 rounded-full mr-2"></div>
                     <span className="text-xs sm:text-sm">Preparando siguiente escaneo...</span>

@@ -32,12 +32,6 @@ export function middleware(request) {
       }
     }
 
-    // Proteger ruta /perfil - solo para usuarios normales
-    if (pathname.startsWith('/perfil')) {
-      if (userRole === 'ADMIN') {
-        return NextResponse.redirect(new URL('/asistencias', request.url));
-      }
-    }
 
     // Si está en login o registro y ya tiene sesión, redirigir según rol
     if (pathname === '/login' || pathname === '/registro') {
