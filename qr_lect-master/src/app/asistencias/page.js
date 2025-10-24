@@ -9,6 +9,7 @@ export default function AsistenciasPage() {
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   
   const [filters, setFilters] = useState({
     nombre: "",
@@ -210,78 +211,101 @@ export default function AsistenciasPage() {
             </div>
 
             <div className="px-4 sm:px-8 py-4 sm:py-6">
-              <div className="bg-slate-50 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base sm:text-lg font-semibold text-slate-700 flex items-center">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filtros
-                  </h2>
-                  <button
-                    onClick={limpiarFiltros}
-                    className="text-xs sm:text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                  >
-                    Limpiar
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                      Nombre
-                    </label>
-                    <input
-                      type="text"
-                      name="nombre"
-                      value={filters.nombre}
-                      onChange={handleFilterChange}
-                      placeholder="Buscar..."
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-                    />
-                  </div>
+                {/* Botón hamburguesa para mostrar/ocultar filtros */}
+  <button
+    onClick={() => setMostrarFiltros(!mostrarFiltros)}
+    className="mb-4 flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-slate-700 font-medium"
+  >
+    <svg 
+      className="w-5 h-5" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke="currentColor"
+    >
+      {mostrarFiltros ? (
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      ) : (
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      )}
+    </svg>
+    {mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+  </button>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                      Correo
-                    </label>
-                    <input
-                      type="text"
-                      name="correo"
-                      value={filters.correo}
-                      onChange={handleFilterChange}
-                      placeholder="Buscar..."
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-                    />
-                  </div>
+  {/* Panel de filtros desplegable */}
+  {mostrarFiltros && (
+    <div className="bg-slate-50 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 animate-fadeIn">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-700 flex items-center">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          Filtros
+        </h2>
+        <button
+          onClick={limpiarFiltros}
+          className="text-xs sm:text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors"
+        >
+          Limpiar
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div>
+          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            Nombre
+          </label>
+          <input
+            type="text"
+            name="nombre"
+            value={filters.nombre}
+            onChange={handleFilterChange}
+            placeholder="Buscar..."
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+          />
+        </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                      Fecha desde
-                    </label>
-                    <input
-                      type="date"
-                      name="fechaInicio"
-                      value={filters.fechaInicio}
-                      onChange={handleFilterChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-                    />
-                  </div>
+        <div>
+          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            Correo
+          </label>
+          <input
+            type="text"
+            name="correo"
+            value={filters.correo}
+            onChange={handleFilterChange}
+            placeholder="Buscar..."
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+          />
+        </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-                      Fecha hasta
-                    </label>
-                    <input
-                      type="date"
-                      name="fechaFin"
-                      value={filters.fechaFin}
-                      onChange={handleFilterChange}
-                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
+        <div>
+          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            Fecha desde
+          </label>
+          <input
+            type="date"
+            name="fechaInicio"
+            value={filters.fechaInicio}
+            onChange={handleFilterChange}
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+            Fecha hasta
+          </label>
+          <input
+            type="date"
+            name="fechaFin"
+            value={filters.fechaFin}
+            onChange={handleFilterChange}
+            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
+          />
+        </div>
+      </div>
+    </div> 
+    )}
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4 sm:mb-6">
