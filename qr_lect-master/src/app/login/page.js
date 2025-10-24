@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function RegistroPage() {
+export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    nombre: "",
     correo: "",
     password: ""
   });
@@ -19,34 +18,18 @@ export default function RegistroPage() {
     });
   };
 
-  const validarCorreoUSCO = (correo) => {
-    const regex = /^u\d+@usco\.edu\.co$/i;
-    return regex.test(correo);
-  };
-
   const handleSubmit = async () => {
     setError("");
 
-    // Validaciones
-    if (!formData.nombre || !formData.correo || !formData.password) {
+    if (!formData.correo || !formData.password) {
       setError("Todos los campos son obligatorios");
-      return;
-    }
-
-    if (!validarCorreoUSCO(formData.correo)) {
-      setError("El correo debe ser institucional de la USCO (formato: uXXXXXXXXXXX@usco.edu.co)");
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError("La contraseña debe tener mínimo 8 caracteres");
       return;
     }
 
     setLoading(true);
     
     try {
-      const res = await fetch("/api/usuarios", {
+      const res = await fetch("/api/login", {
         method: "POST",
         body: JSON.stringify(formData),
         headers: { "Content-Type": "application/json" },
@@ -54,22 +37,56 @@ export default function RegistroPage() {
 
       const json = await res.json();
       
+      console.log("=== DEBUG LOGIN ===");
+      console.log("Status de respuesta:", res.status);
+      console.log("Respuesta completa:", json);
+      console.log("Usuario:", json.usuario);
+      console.log("Role:", json.usuario?.role);
+      console.log("QR existe:", !!json.qr);
+      
       if (res.ok) {
+        // Verificar que tengamos los datos necesarios
+        if (!json.usuario || !json.qr) {
+          console.error("Faltan datos en la respuesta");
+          setError("Error en la respuesta del servidor");
+          setLoading(false);
+          return;
+        }
+
         // Guardar datos del usuario en localStorage
-        localStorage.setItem('userData', JSON.stringify({
+        const userData = {
           qr: json.qr,
           usuario: json.usuario
-        }));
+        };
         
-        // Redirigir a la página de perfil
-        window.location.href = "/perfil";
+        console.log("Guardando en localStorage:", userData);
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // Verificar si el usuario es administrador
+        const role = json.usuario.role;
+        
+        console.log("Verificando role:", role);
+        console.log("Es ADMIN?", role === "ADMIN");
+        
+        if (role === "ADMIN") {
+          console.log("→ Redirigiendo a /asistencias");
+          setTimeout(() => {
+            window.location.href = "/asistencias";
+          }, 100);
+        } else {
+          console.log("→ Redirigiendo a /perfil");
+          setTimeout(() => {
+            window.location.href = "/perfil";
+          }, 100);
+        }
       } else {
-        setError(json.error || "Error al registrar usuario");
+        console.error("Error en login:", json.error);
+        setError(json.error || "Credenciales incorrectas");
+        setLoading(false);
       }
     } catch (error) {
-      console.error("Error al registrar:", error);
+      console.error("Error al iniciar sesión:", error);
       setError("Error de conexión. Intente nuevamente.");
-    } finally {
       setLoading(false);
     }
   };
@@ -86,10 +103,10 @@ export default function RegistroPage() {
         <div className="bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-8 py-6">
             <h1 className="text-2xl font-semibold text-white text-center">
-              Registro de Usuario
+              Iniciar Sesión
             </h1>
             <p className="text-slate-300 text-sm text-center mt-2">
-              Únete al Semillero Devurity
+              Accede a tu cuenta del Semillero
             </p>
           </div>
 
@@ -108,29 +125,7 @@ export default function RegistroPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Nombre completo
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <input
-                    name="nombre"
-                    type="text"
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ingrese su nombre"
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Correo institucional USCO
+                  Correo institucional
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -148,9 +143,6 @@ export default function RegistroPage() {
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
                   />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Formato: uXXXXXXXXXXX@usco.edu.co
-                </p>
               </div>
 
               <div>
@@ -173,9 +165,6 @@ export default function RegistroPage() {
                     className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
                   />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Mínimo 8 caracteres
-                </p>
               </div>
 
               <button
@@ -183,15 +172,15 @@ export default function RegistroPage() {
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white py-3 rounded-md font-medium hover:from-slate-800 hover:to-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Procesando..." : "Registrar cuenta"}
+                {loading ? "Verificando..." : "Iniciar sesión"}
               </button>
 
               <div className="text-center">
                 <a 
-                  href="/login" 
+                  href="/registro" 
                   className="text-sm text-slate-600 hover:text-slate-800 transition-colors"
                 >
-                  ¿Ya tienes cuenta? Inicia sesión
+                  ¿No tienes cuenta? Regístrate aquí
                 </a>
               </div>
             </div>
@@ -199,7 +188,7 @@ export default function RegistroPage() {
 
           <div className="bg-slate-50 px-8 py-4 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">
-              Al registrarse, acepta nuestros términos y condiciones
+              Semillero Devurity - Universidad Surcolombiana
             </p>
           </div>
         </div>
